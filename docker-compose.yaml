@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  asyncio_pubsub_lab:
+    container_name: asyncio_pubsub_lab
+    image: postgres:15
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - lab
+
+  asyncio_pubsub_lab_admin:
+    container_name: asyncio_pubsub_lab_admin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "lab@gmail.com"
+      PGADMIN_DEFAULT_PASSWORD: "postgres"
+    ports:
+      - "8080:80"
+    depends_on:
+      - asyncio_pubsub_lab
+    networks:
+      - lab
+
+networks:
+  lab:
+    driver: bridge
