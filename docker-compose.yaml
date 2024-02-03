@@ -1,8 +1,8 @@
 version: "3.9"
 
 services:
-  asyncio_pubsub_lab:
-    container_name: asyncio_pubsub_lab
+  asyncio_pubsub_lab_db:
+    container_name: asyncio_pubsub_lab_db
     image: postgres:15
     environment:
       POSTGRES_DB: postgres
@@ -21,7 +21,7 @@ services:
     ports:
       - "8080:80"
     depends_on:
-      - asyncio_pubsub_lab
+      - asyncio_pubsub_lab_db
     networks:
       - lab
 
