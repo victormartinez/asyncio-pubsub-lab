@@ -4,25 +4,26 @@ default: help
 .PHONY: help
 help:
 	@echo "All Commands:"
-	@echo "		clean - Remove temp files"
-	@echo "								 "
-	@echo "		pubsub_build - Build pubsub emulator image"
-	@echo "		pubsub_up - Start pubsub container"
-	@echo "     pubsub_create_topic - Create topic"
-	@echo "     pubsub_create_subscription - Create subscription"
-	@echo "     pubsub_produce - Produce message"
-	@echo "     pubsub_consume - Consume messages"
-	@echo "								 "
-	@echo "     db_connect - Connect to database"
-	@echo "     db_generate_revision - Generate alembic revision"
-	@echo "		db_upgrade - Database upgrade"
-	@echo "		db_downgrade - Database downgrade"
-	@echo "		db_drop - Database drop"
-	@echo "		db_up - Database up"
-	@echo "		db_down - Database down"
-	@echo "								 "
-	@echo "		run_command - Run command"
-	@echo "		run_query - Run query"
+	@echo "	clean - Remove temp files"
+	@echo "	 "
+	@echo "	pubsub_build - Build pubsub emulator image"
+	@echo "	pubsub_up - Start pubsub container"
+	@echo "	pubsub_create_topic - Create topic"
+	@echo "	pubsub_create_subscription - Create subscription"
+	@echo "	pubsub_producer - Produce message"
+	@echo "	pubsub_consumer - Consume messages"
+	@echo "	 "
+	@echo "	db_connect - Connect to database"
+	@echo "	db_generate_revision - Generate alembic revision"
+	@echo "	db_upgrade - Database upgrade"
+	@echo "	db_downgrade - Database downgrade"
+	@echo "	db_drop - Database drop"
+	@echo "	db_up - Database up"
+	@echo "	db_down - Database down"
+	@echo "	 "
+	@echo "	run_command - Run command"
+	@echo "	run_query - Run query"
+	@echo "	run_task - Run task"
 
 
 .PHONY: clean
@@ -54,7 +55,7 @@ pubsub_producer:
 
 .PHONY: pubsub_consumer
 pubsub_consumer:
-	PUBSUB_EMULATOR_HOST=127.0.0.1:8085 python -m src.workers.consumer
+	PUBSUB_EMULATOR_HOST=127.0.0.1:8085 python -m src.pubsub_emulator.consumer
 
 .PHONY: db_connect
 db_connect:
@@ -92,3 +93,8 @@ run_command:
 .PHONY: run_query
 run_query:
 	python -m src -module query
+
+
+.PHONY: run_task
+run_task:
+	PUBSUB_EMULATOR_HOST=127.0.0.1:8085 python -m src.workers.consumer
