@@ -1,8 +1,11 @@
 import asyncio
 import json
+from random import randint
 
 from concurrent.futures import TimeoutError
 from google.cloud import pubsub_v1
+from structlog import get_logger
+
 
 from src.workers import task
 
@@ -18,26 +21,40 @@ subscriber = pubsub_v1.SubscriberClient()
 subscription_path = subscriber.subscription_path(PROJECT_ID, SUBSCRIPTION_ID)
 
 
-loop = asyncio.get_event_loop()
+logger = get_logger(__name__)
+
 
 
 def callback(message: pubsub_v1.subscriber.message.Message) -> None:
-    data = json.loads(message.data.decode("utf-8"))
+    try:
+        value = randint(0, 99999)
 
-    print("AQUI")
-    asyncio.run(task.query_or_persist(name=data["name"]))
+        logger.info("Message arrived!", value=value)
+        data = json.loads(message.data.decode("utf-8"))
 
-    # asyncio.run_coroutine_threadsafe(task.query_or_persist(name=data["name"]), loop)
+        # event_loop = asyncio.new_event_loop()
+        # asyncio.set_event_loop(event_loop)
+        # background_tasks = set()
+        # tarefa = asyncio.create_task(task.query_or_persist(name=data["name"]))
+        # background_tasks.add(tarefa)
+        # tarefa.add_done_callback(background_tasks.discard)
 
-    ack_future = message.ack_with_response()
-    ack_future.result(timeout=5)
+        asyncio.run(task.query_or_persist(name=data["name"], value=value))
 
 
-flow_control = pubsub_v1.types.FlowControl(max_messages=100)
+        ack_future = message.ack_with_response()
+        ack_future.result()
+        logger.info("Thread done!", value=value)
+    except Exception as exc:
+        logger.error(exc, function="callback", value=value)
+    
+
+
+# flow_control = pubsub_v1.types.FlowControl(max_messages=100)
 streaming_pull_future = subscriber.subscribe(
     subscription_path,
     callback=callback,
-    flow_control=flow_control,
+    # flow_control=flow_control,
     await_callbacks_on_shutdown=True
 )
 print(f"Listening for messages on {subscription_path}..\n")
