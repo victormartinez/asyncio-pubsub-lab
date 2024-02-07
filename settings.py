@@ -2,6 +2,11 @@ from decouple import config
 from sqlalchemy import NullPool
 
 
+OTEL_ENABLED = config("OTEL_ENABLED", cast=bool, default=True)
+OTEL_COLLECTOR_TRACES_URL = config("OTEL_COLLECTOR_TRACES_URL", default="")
+JAEGER_HOST = config("JAEGER_HOST", default="localhost")
+JAEGER_PORT = config("JAEGER_PORT", default="6831")
+
 DB_USER = config("DB_USER")
 DB_PASS = config("DB_PASS")
 DB_HOST = config("DB_HOST")
