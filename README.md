@@ -68,6 +68,14 @@ async with async_session_null() as db_session:
 
 ```
 
+## Traces
+
+- [Jaeger](http://localhost:16686/search)
+- [Grafana](http://localhost:3000/explore)
+
+In order to configure grafana you must add Jaeger data source (URL: http://jaeger:16686)
+
+
 
 ## Start Producer/Consumer
 
