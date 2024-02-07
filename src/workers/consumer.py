@@ -1,12 +1,15 @@
 import asyncio
 import json
-from random import randint
 
+from opentelemetry import trace, metrics
+from opentelemetry.trace.status import StatusCode
 from concurrent.futures import TimeoutError
 from google.cloud import pubsub_v1
 from structlog import get_logger
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-
+import settings
+from src import telemetry
 from src.workers import task
 
 # Number of seconds the subscriber should listen for messages
@@ -22,32 +25,34 @@ subscription_path = subscriber.subscription_path(PROJECT_ID, SUBSCRIPTION_ID)
 
 
 logger = get_logger(__name__)
+tracer = trace.get_tracer(__name__)
+metric = metrics.get_meter(__name__)
 
+telemetry.configure_automatic_instrumentation()
+telemetry.configure_tracer()
 
 
 def callback(message: pubsub_v1.subscriber.message.Message) -> None:
-    try:
-        value = randint(0, 99999)
+    logger.info("started")
+    with tracer.start_as_current_span("src.workers.consumer.callback") as span:
+        try:
+            span.add_event("message arrived!")
+            data = json.loads(message.data.decode("utf-8"))        
+            result = asyncio.run(task.query_person_by_name(name=data["name"]))
+            span.add_event("executed query!")
+            if not result:
+                asyncio.run(task.persist_person(name=data["name"]))
+                span.add_event("persisted person!")
 
-        logger.info("Message arrived!", value=value)
-        data = json.loads(message.data.decode("utf-8"))
-
-        # event_loop = asyncio.new_event_loop()
-        # asyncio.set_event_loop(event_loop)
-        # background_tasks = set()
-        # tarefa = asyncio.create_task(task.query_or_persist(name=data["name"]))
-        # background_tasks.add(tarefa)
-        # tarefa.add_done_callback(background_tasks.discard)
-
-        asyncio.run(task.query_or_persist(name=data["name"], value=value))
-
-
-        ack_future = message.ack_with_response()
-        ack_future.result()
-        logger.info("Thread done!", value=value)
-    except Exception as exc:
-        logger.error(exc, function="callback", value=value)
-    
+            ack_future = message.ack_with_response()
+            ack_future.result()
+            
+        except Exception as exc:
+            logger.error(exc, function="callback")
+            span.set_status(status=StatusCode.ERROR)
+            span.record_exception(exc)
+        finally:
+            logger.info("done")
 
 
 # flow_control = pubsub_v1.types.FlowControl(max_messages=100)

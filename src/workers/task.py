@@ -14,30 +14,37 @@ from src.db.models import Person
 logger = get_logger(__name__)
 
 
-async def query_or_persist(name: str, value: int):
-    # async for db_session in session_factory():
+async def query_person_by_name(name: str):
     async with async_session() as db_session:
         try:
             await dispose_engine()
-
-            logger.info("Querying person", function="query_or_persist", value=value)
             query = select(Person).where(Person.name == name)
-            logger.info("Executing query", function="query_or_persist", value=value)
+            logger.info("Executing query", function="query_person_by_name")
             result = await db_session.execute(query)
-            logger.info("Executed query", function="query_or_persist", value=value)
-            obj = result.scalars().first()
-            if not obj:
-                new_obj = Person(name=name)
-                db_session.add(new_obj)
-                logger.info("Commiting", function="query_or_persist", value=value)
-                await db_session.commit()
-                logger.info("Commited", function="query_or_persist", value=value)
-            return obj
+            logger.info("Executed query", function="query_person_by_name")
+            return result.scalars().first()
         except Exception as exc:
-            logger.error("Worker error", function="query_or_persist", value=value, exc=exc, )
+            logger.error("Worker error", function="query_person_by_name", exc=exc)
             raise exc
         finally:
-            logger.info("Closing DB conn", value=value)
+            logger.info("Closing DB conn")
             await db_session.close()
             await dispose_engine()
 
+
+async def persist_person(name: str):
+    async with async_session() as db_session:
+        try:
+            await dispose_engine()
+            new_obj = Person(name=name)
+            db_session.add(new_obj)
+            logger.info("Commiting", function="persist_person")
+            await db_session.commit()
+            logger.info("Commited", function="persist_person")
+        except Exception as exc:
+            logger.error("Worker error", function="persist_person", exc=exc)
+            raise exc
+        finally:
+            logger.info("Closing DB conn")
+            await db_session.close()
+            await dispose_engine()

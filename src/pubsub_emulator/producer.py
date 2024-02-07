@@ -989,7 +989,7 @@ NAMES = [
     "Frederick Glenn",
 ]
 
-for name in NAMES:
+for name in NAMES[:100]:
     data = json.dumps({"name": name})
     # When you publish a message, the client returns a future.
     publish_future = publisher.publish(topic_path, data.encode("utf-8"))
