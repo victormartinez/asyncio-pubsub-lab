@@ -80,7 +80,7 @@ db_drop:
 
 .PHONY: db_up
 db_up:
-	docker compose -f docker-compose.yaml up -d
+	docker compose -f docker-compose.yaml up
 
 .PHONY: db_down
 db_down:
